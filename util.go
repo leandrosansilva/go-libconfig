@@ -31,7 +31,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
-	"strings"
 	"unsafe"
 )
 
@@ -79,35 +78,12 @@ func scanMatch(path string) []string {
 }
 
 func matchFile(filename string, matching string) bool {
-	matchs := strings.Split(matching, "*")
-
-	if matchs[0] != "" {
-		if !strings.HasPrefix(filename, matchs[0]) {
-			return false
-		}
-
-		filename = strings.TrimPrefix(filename, matchs[0])
-		matchs = matchs[1:]
-	}
-	if matchs[len(matchs)-1] != "" {
-		if !strings.HasSuffix(filename, matchs[len(matchs)-1]) {
-			return false
-		}
-
-		filename = strings.TrimSuffix(filename, matchs[len(matchs)-1])
-		matchs = matchs[:len(matchs)-1]
+	matched, err := filepath.Match(matching, filename)
+	if err != nil {
+		return false
 	}
 
-	for _, match := range matchs {
-		n := strings.Index(filename, match)
-		if n == -1 {
-			return false
-		}
-
-		filename = filename[n:]
-	}
-
-	return true
+	return matched
 }
 
 func scanMatchDir(path string, matching string) (matchFiles []string) {

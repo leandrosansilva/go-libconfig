@@ -1,0 +1,3 @@
+[submodule "testdata/libconfig"]
+	path = testdata/libconfig
+	url = https://github.com/hyperrealm/libconfig
