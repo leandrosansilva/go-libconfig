@@ -27,13 +27,14 @@ package libconfig
 
 import (
 	"fmt"
-	"github.com/gitteamer/libconfig/fastfloat"
 	"io/ioutil"
 	"math/big"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"unicode/utf16"
+
+	"github.com/xiaocok/libconfig/fastfloat"
 )
 
 // Parser parses JSON.

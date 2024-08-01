@@ -2,8 +2,9 @@ package libconfig_test
 
 import (
 	"fmt"
-	"fastjson"
 	"log"
+
+	"github.com/valyala/fastjson"
 )
 
 func ExampleScanner() {

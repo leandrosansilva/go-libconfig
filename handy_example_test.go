@@ -2,9 +2,10 @@ package libconfig_test
 
 import (
 	"fmt"
-	"github.com/gitteamer/libconfig"
 	"io/ioutil"
 	"log"
+
+	"github.com/xiaocok/libconfig"
 )
 
 // parse bytes demo.cfg
@@ -16,15 +17,15 @@ func ExampleParseBytes() {
 
 	fmt.Printf("version = %s\n", libconfig.GetString(data, "version"))
 	fmt.Printf("application.window.title = %s\n", libconfig.GetString(data, "application", "window", "title"))
-	fmt.Printf("application.window.size.w = %d\n",  libconfig.GetInt(data, "application", "window", "size", "w"))
+	fmt.Printf("application.window.size.w = %d\n", libconfig.GetInt(data, "application", "window", "size", "w"))
 	fmt.Printf("application.window.size.h = %d\n", libconfig.GetInt(data, "application", "window", "size", "h"))
 	fmt.Printf("application.window.pos.x = %d\n", libconfig.GetInt(data, "application", "window", "pos", "x"))
 	fmt.Printf("application.window.pos.y = %d\n", libconfig.GetInt(data, "application", "window", "pos", "y"))
 
 	fmt.Printf("application.list[0][0] = %s\n", libconfig.GetString(data, "application", "list", "0", "0"))
-	fmt.Printf("application.list[0][1] = %d\n",  libconfig.GetInt(data, "application", "list", "0", "1"))
+	fmt.Printf("application.list[0][1] = %d\n", libconfig.GetInt(data, "application", "list", "0", "1"))
 	fmt.Printf("application.list[0][2] = %t\n", libconfig.GetBool(data, "application", "list", "0", "2"))
-	fmt.Printf("application.list[1] = %f\n",  libconfig.GetFloat64(data, "application", "list", "1"))
+	fmt.Printf("application.list[1] = %f\n", libconfig.GetFloat64(data, "application", "list", "1"))
 	fmt.Printf("application.list[2][0] =%s\n", libconfig.GetString(data, "application", "list", "2", "0"))
 
 	fmt.Printf("application.books[0].title = %s\n", libconfig.GetString(data, "application", "books", "0", "title"))
@@ -34,13 +35,13 @@ func ExampleParseBytes() {
 	fmt.Printf("application.books[1].title = %s\n", libconfig.GetString(data, "application", "books", "1", "title"))
 	fmt.Printf("application.books[1].author = %s\n", libconfig.GetString(data, "application", "books", "1", "author"))
 	fmt.Printf("application.books[1].price = %f\n", libconfig.GetFloat64(data, "application", "books", "1", "price"))
-	fmt.Printf("application.books[1].qty = %d\n",  libconfig.GetInt(data, "application", "books", "1", "qty"))
+	fmt.Printf("application.books[1].qty = %d\n", libconfig.GetInt(data, "application", "books", "1", "qty"))
 
-	fmt.Printf("application.misc.pi = %.9f\n",  libconfig.GetFloat64(data, "application", "misc", "pi"))
+	fmt.Printf("application.misc.pi = %.9f\n", libconfig.GetFloat64(data, "application", "misc", "pi"))
 	fmt.Printf("application.misc.bigint = %s\n", libconfig.GetBigint(data, "application", "misc", "bigint").String())
 	fmt.Printf("application.misc.columns[0] = %s\n", libconfig.GetString(data, "application", "misc", "columns", "0"))
 	fmt.Printf("application.misc.columns[1] = %s\n", libconfig.GetString(data, "application", "misc", "columns", "1"))
-	fmt.Printf("application.misc.columns[2] = %s\n",  libconfig.GetString(data, "application", "misc", "columns", "2"))
+	fmt.Printf("application.misc.columns[2] = %s\n", libconfig.GetString(data, "application", "misc", "columns", "2"))
 	fmt.Printf("application.misc.bitmask = %d\n", libconfig.GetInt(data, "application", "misc", "bitmask"))
 	fmt.Printf("application.misc.bitmask_hex = %s\n", libconfig.GetHex(data, "application", "misc", "bitmask"))
 
@@ -102,7 +103,7 @@ func ExampleParseInclude() {
 	// books[3].extra2=12345
 }
 
-func ExampleMix()  {
+func ExampleMix() {
 	data := []byte(`foo=([{bar=1234; baz=0;}],)`)
 
 	// handy parse

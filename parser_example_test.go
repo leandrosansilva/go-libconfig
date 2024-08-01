@@ -2,9 +2,10 @@ package libconfig_test
 
 import (
 	"fmt"
-	"fastjson"
 	"log"
 	"strconv"
+
+	"github.com/valyala/fastjson"
 )
 
 func ExampleParser_Parse() {

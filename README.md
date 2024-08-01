@@ -291,7 +291,7 @@ import (
     "fmt"
     "log"
     "io/ioutil"
-    "github.com/gitteamer/libconfig"
+    "github.com/xiaocok/libconfig"
 )
 func main(){
     data, err := ioutil.ReadFile("testdata/demo.cfg")
