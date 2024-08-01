@@ -1095,7 +1095,7 @@ func (v *Value) GetBigint(keys ...string) *big.Int {
 
 func (v *Value) GetRawBytes(keys ...string) []byte {
 	v = v.Get(keys...)
-	if v == nil || v.Type() != TypeNumber || v.Type() != TypeString {
+	if v == nil || (v.Type() != TypeNumber && v.Type() != TypeString) {
 		return nil
 	}
 	return s2b(v.s)
