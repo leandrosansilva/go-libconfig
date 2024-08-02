@@ -33,13 +33,13 @@ import (
 
 // Validate validates JSON s.
 func Validate(s string) error {
-	s = skipWS(s)
+	s, _ = skipWS(s)
 
 	tail, err := validateValue(s)
 	if err != nil {
 		return fmt.Errorf("cannot parse JSON: %s; unparsed tail: %q", err, startEndString(tail))
 	}
-	tail = skipWS(tail)
+	tail, _ = skipWS(tail)
 	if len(tail) > 0 {
 		return fmt.Errorf("unexpected tail: %q", startEndString(tail))
 	}
@@ -110,7 +110,7 @@ func validateValue(s string) (string, error) {
 }
 
 func validateArray(s string) (string, error) {
-	s = skipWS(s)
+	s, _ = skipWS(s)
 	if len(s) == 0 {
 		return s, fmt.Errorf("missing ']'")
 	}
@@ -121,13 +121,13 @@ func validateArray(s string) (string, error) {
 	for {
 		var err error
 
-		s = skipWS(s)
+		s, _ = skipWS(s)
 		s, err = validateValue(s)
 		if err != nil {
 			return s, fmt.Errorf("cannot parse array value: %s", err)
 		}
 
-		s = skipWS(s)
+		s, _ = skipWS(s)
 		if len(s) == 0 {
 			return s, fmt.Errorf("unexpected end of array")
 		}
@@ -144,7 +144,7 @@ func validateArray(s string) (string, error) {
 }
 
 func validateObject(s string) (string, error) {
-	s = skipWS(s)
+	s, _ = skipWS(s)
 	if len(s) == 0 {
 		return s, fmt.Errorf("missing '}'")
 	}
@@ -156,7 +156,7 @@ func validateObject(s string) (string, error) {
 		var err error
 
 		// Parse key.
-		s = skipWS(s)
+		s, _ = skipWS(s)
 		if len(s) == 0 || s[0] != '"' {
 			return s, fmt.Errorf(`cannot find opening '"" for object key`)
 		}
@@ -172,19 +172,19 @@ func validateObject(s string) (string, error) {
 				return s, fmt.Errorf("object key cannot contain control char 0x%02X", key[i])
 			}
 		}
-		s = skipWS(s)
+		s, _ = skipWS(s)
 		if len(s) == 0 || s[0] != ':' {
 			return s, fmt.Errorf("missing ':' after object key")
 		}
 		s = s[1:]
 
 		// Parse value
-		s = skipWS(s)
+		s, _ = skipWS(s)
 		s, err = validateValue(s)
 		if err != nil {
 			return s, fmt.Errorf("cannot parse object value: %s", err)
 		}
-		s = skipWS(s)
+		s, _ = skipWS(s)
 		if len(s) == 0 {
 			return s, fmt.Errorf("unexpected end of object")
 		}

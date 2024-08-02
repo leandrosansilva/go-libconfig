@@ -64,7 +64,7 @@ func (p *Parser) Parse(s string) (*Value, error) {
 	s = "{" + s + "};"
 
 	//s = skipWS(s)
-	s = skipJunk(s)
+	s, _ = skipJunk(s)
 	p.b = append(p.b[:0], s...)
 	p.c.reset()
 
@@ -73,7 +73,7 @@ func (p *Parser) Parse(s string) (*Value, error) {
 		return nil, fmt.Errorf("cannot parse libconfig: %s; unparsed tail: %q", err, startEndString(tail))
 	}
 	//tail = skipWS(tail)
-	tail = skipJunk(tail)
+	tail, _ = skipJunk(tail)
 	tail = strings.TrimSpace(tail)
 	if /*len(tail) > 0*/ len(tail) != 1 && tail[0] != ';' {
 		return nil, fmt.Errorf("unexpected tail: %q", startEndString(tail))
@@ -124,42 +124,66 @@ func (c *cache) getValue() *Value {
 	return &c.vs[len(c.vs)-1]
 }
 
-func skipWS(s string) string {
+func skipWS(s string) (string, bool) {
 	if len(s) == 0 || s[0] > 0x20 {
 		// Fast path.
-		return s
+		return s, false
 	}
+
 	return skipWSSlow(s)
 }
 
-func skipWSSlow(s string) string {
+func isNewLine(r byte) bool {
+	return r == 0x0A || r == 0x0D
+}
+
+func skipWSSlow(s string) (string, bool) {
+	if len(s) == 0 {
+		return s, false
+	}
+
 	//0x20 space
 	//0x0A LF    \n	line break
 	//0x09 HT    horizontal list
 	//0x0D CR    \r	enter
-	if len(s) == 0 || s[0] != 0x20 && s[0] != 0x0A && s[0] != 0x09 && s[0] != 0x0D {
-		return s
+
+	hasNewLine := isNewLine(s[0])
+
+	if s[0] != 0x20 && s[0] != 0x0A && s[0] != 0x09 && s[0] != 0x0D {
+		return s, hasNewLine
 	}
+
 	for i := 1; i < len(s); i++ {
+		hasNewLine = hasNewLine || isNewLine(s[1])
+
 		if s[i] != 0x20 && s[i] != 0x0A && s[i] != 0x09 && s[i] != 0x0D {
-			return s[i:]
+			return s[i:], hasNewLine
 		}
 	}
-	return ""
+
+	return "", hasNewLine
 }
 
-func skipJunk(s string) string {
-	s = skipWS(s)
-	s = skipComment(s)
-	s = skipWS(s)
-	return s
+func skipJunk(s string) (string, bool) {
+	var (
+		newLine1 bool
+		newLine2 bool
+		newLine3 bool
+	)
+
+	s, newLine1 = skipWS(s)
+	s, newLine2 = skipComment(s)
+	s, newLine3 = skipWS(s)
+	return s, newLine1 || newLine2 || newLine3
 }
 
-func skipComment(s string) string {
+func skipComment(s string) (string, bool) {
+	hasNewLine := false
 startSkip:
-	s = skipWS(s)
+	s, _ = skipWS(s)
 	if s[0] == '#' {
 		for i := 1; i < len(s); i++ {
+			hasNewLine = hasNewLine || isNewLine(s[i])
 			if s[i] == 0x0A {
 				s = s[i+1:]
 				goto startSkip
@@ -168,6 +192,8 @@ startSkip:
 	}
 	if len(s) > 2 && s[0:2] == "//" {
 		for i := 1; i < len(s); i++ {
+			hasNewLine = hasNewLine || isNewLine(s[i])
+
 			if s[i] == 0x0A {
 				s = s[i+1:]
 				goto startSkip
@@ -176,6 +202,8 @@ startSkip:
 	}
 	if len(s) > 2 && s[0:2] == "/*" {
 		for len(s)-1 > 0 {
+			hasNewLine = hasNewLine || isNewLine(s[0])
+
 			if s[0:2] == "*/" {
 				s = s[2:]
 				goto startSkip
@@ -185,11 +213,11 @@ startSkip:
 		}
 		if len(s) == 0 {
 			fmt.Println("missing */")
-			return s
+			return s, hasNewLine
 		}
 	}
 
-	return s
+	return s, hasNewLine
 }
 
 //func removeAnnotation(s string) (string, error) {
@@ -319,7 +347,7 @@ func parseValue(s string, c *cache, dir string, depth int) (*Value, string, erro
 
 func parseArray(s string, c *cache, dir string, depth int) (*Value, string, error) {
 	//s = skipWS(s)
-	s = skipJunk(s)
+	s, _ = skipJunk(s)
 	if len(s) == 0 {
 		return nil, s, fmt.Errorf("missing ']'")
 	}
@@ -358,7 +386,7 @@ func parseArray(s string, c *cache, dir string, depth int) (*Value, string, erro
 		var err error
 
 		//s = skipWS(s)
-		s = skipJunk(s)
+		s, _ = skipJunk(s)
 		if s[0] == ']' || s[0] == ')' {
 			s = s[1:]
 			return a, s, nil
@@ -371,7 +399,7 @@ func parseArray(s string, c *cache, dir string, depth int) (*Value, string, erro
 		a.a = append(a.a, v)
 
 		//s = skipWS(s)
-		s = skipJunk(s)
+		s, _ = skipJunk(s)
 		if len(s) == 0 {
 			return nil, s, fmt.Errorf("unexpected end of array")
 		}
@@ -389,7 +417,7 @@ func parseArray(s string, c *cache, dir string, depth int) (*Value, string, erro
 
 func parseObject(s string, c *cache, dir string, depth int) (*Value, string, error) {
 	//s = skipWS(s)
-	s = skipJunk(s)
+	s, _ = skipJunk(s)
 	if len(s) == 0 {
 		return nil, s, fmt.Errorf("missing };")
 	}
@@ -397,7 +425,7 @@ func parseObject(s string, c *cache, dir string, depth int) (*Value, string, err
 	if s[0] == '}' { // };
 		s = s[1:]
 		//s = skipWS(s)
-		s = skipJunk(s)
+		s, _ = skipJunk(s)
 		if s[0] != ';' {
 			return nil, s, fmt.Errorf("missing ;")
 		}
@@ -416,7 +444,7 @@ func parseObject(s string, c *cache, dir string, depth int) (*Value, string, err
 
 		// Parse key.
 		//s = skipWS(s)
-		s = skipJunk(s)
+		s, _ = skipJunk(s)
 		/*if len(s) == 0 || s[0] != '"' {
 			return nil, s, fmt.Errorf(`cannot find opening '"" for object key`)
 		}*/
@@ -430,7 +458,7 @@ func parseObject(s string, c *cache, dir string, depth int) (*Value, string, err
 			return nil, s, fmt.Errorf("cannot parse object key: %s", err)
 		}
 		//s = skipWS(s)
-		s = skipJunk(s)
+		s, _ = skipJunk(s)
 		if len(s) == 0 || (s[0] != ':' && s[0] != '=') {
 			return nil, s, fmt.Errorf("missing ':' or '=' after object key")
 		}
@@ -438,25 +466,29 @@ func parseObject(s string, c *cache, dir string, depth int) (*Value, string, err
 
 		// Parse value
 		//s = skipWS(s)
-		s = skipJunk(s)
+		s, _ = skipJunk(s)
 		kv.v, s, err = parseValue(s, c, dir, depth)
 		if err != nil {
 			return nil, s, fmt.Errorf("cannot parse object value: %s", err)
 		}
 		//s = skipWS(s)
-		s = skipJunk(s)
+		var hasNewLine bool
+		s, hasNewLine = skipJunk(s)
 		if len(s) == 0 {
 			return nil, s, fmt.Errorf("unexpected end of object")
 		}
-		if s[0] == ';' { // ;}
-			s = s[1:]
+		if s[0] == ';' || hasNewLine { // ;}
+			if s[0] == ';' {
+				s = s[1:]
+			}
+
 			//s = skipWS(s)
-			s = skipJunk(s)
+			s, _ = skipJunk(s)
 
 			if s[0] == '}' {
 				s = s[1:]
 				//s = skipWS(s)
-				s = skipJunk(s)
+				s, _ = skipJunk(s)
 				return o, s, nil
 			}
 
@@ -465,7 +497,7 @@ func parseObject(s string, c *cache, dir string, depth int) (*Value, string, err
 		//fix empty object, and here for close object, };
 		if s[0] == '}' {
 			s = s[1:]
-			s = skipJunk(s)
+			s, _ = skipJunk(s)
 			return o, s, nil
 		}
 		return nil, s, fmt.Errorf("missing ';' after object value, or missing '};' for close object")
@@ -481,7 +513,7 @@ func loadInclude(s string, dir string) (string, error) {
 	}
 
 	s = s[8:]
-	s = skipJunk(s)
+	s, _ = skipJunk(s)
 
 	if s[0] == '"' {
 		s = s[1:]
@@ -670,7 +702,7 @@ func parseRawString(s string) (string, string, error) {
 func parseRawNumber(s string) (string, string, error) {
 	// The caller must ensure len(s) > 0
 
-	s = skipWS(s)
+	s, _ = skipWS(s)
 	hex := false
 
 	// Find the end of the number.
@@ -697,7 +729,7 @@ func parseRawNumber(s string) (string, string, error) {
 			continue
 		}
 		if ch == 'L' { // bigint
-			tmp := skipWS(s[i+1:])
+			tmp, _ := skipWS(s[i+1:])
 			if tmp[0] == ';' {
 				return s[:i+1], s[i+1:], nil
 			}

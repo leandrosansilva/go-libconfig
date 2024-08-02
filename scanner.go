@@ -83,7 +83,7 @@ func (sc *Scanner) Next() bool {
 		return false
 	}
 
-	sc.s = skipWS(sc.s)
+	sc.s, _ = skipWS(sc.s)
 	if len(sc.s) == 0 {
 		sc.err = errEOF
 		return false
