@@ -477,7 +477,8 @@ func parseObject(s string, c *cache, dir string, depth int) (*Value, string, err
 		if len(s) == 0 {
 			return nil, s, fmt.Errorf("unexpected end of object")
 		}
-		if s[0] == ';' || hasNewLine { // ;}
+
+		if s[0] == ';' || (hasNewLine && s[0] != '}') { // ;}
 			if s[0] == ';' {
 				s = s[1:]
 			}
@@ -494,12 +495,18 @@ func parseObject(s string, c *cache, dir string, depth int) (*Value, string, err
 
 			continue
 		}
+
+		// A new include is starting
+		if s[0] == '@' {
+			continue
+		}
+
 		//fix empty object, and here for close object, };
 		if s[0] == '}' {
 			s = s[1:]
-			s, _ = skipJunk(s)
 			return o, s, nil
 		}
+
 		return nil, s, fmt.Errorf("missing ';' after object value, or missing '};' for close object")
 	}
 }
